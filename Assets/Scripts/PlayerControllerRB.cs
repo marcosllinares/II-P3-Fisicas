@@ -2,9 +2,7 @@ using UnityEngine;
 
 public class PlayerControllerRB : MonoBehaviour
 {
-    public float moveSpeed = 6f;      // velocidad deseada en m/s
-    public float accel = 20f;         // aceleración
-    public float maxSpeed = 8f;       // límite de velocidad
+    public float moveSpeed = 10f;      // velocidad de movimiento
 
     Rigidbody rb;
 
@@ -15,24 +13,21 @@ public class PlayerControllerRB : MonoBehaviour
         float h = Input.GetAxis("Horizontal"); // A/D o flechas
         float v = Input.GetAxis("Vertical");   // W/S o flechas
         Vector3 input = new Vector3(h, 0, v);
-        if (input.sqrMagnitude > 1f) input.Normalize();
 
-        // Movimiento en plano XZ relativo al mundo (si quieres relativo a cámara, usa su forward/right)
-        Vector3 desiredVel = input * moveSpeed;
-    Vector3 currentVel = rb.linearVelocity;
-    Vector3 velChange = desiredVel - new Vector3(currentVel.x, 0, currentVel.z);
+        // Movimiento básico WASD - usando VelocityChange para respuesta inmediata
+        Vector3 movement = input * moveSpeed;
+        // rb.AddForce(movement, ForceMode.VelocityChange);
+        rb.AddForce(movement, ForceMode.Force);
 
-        // No jump or grounded checks: always use full ground control while keeping some airControl effect
-        float control = 1f;
-        Vector3 accelStep = Vector3.ClampMagnitude(velChange, accel * control * Time.fixedDeltaTime);
-        rb.AddForce(accelStep, ForceMode.VelocityChange);
+        // 2 formas de aplicar fuerza:
+        // Con ForceMode.Force - gradual, depende de masa
+        //rb.AddForce(movement, ForceMode.Force);
+        // Si masa = 1kg y movement = (5,0,0), aplica 5N de fuerza
+        // El objeto acelera lentamente hacia 5 m/s
 
-        // Clamp velocidad máxima en plano
-        Vector3 planar = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-        if (planar.magnitude > maxSpeed)
-        {
-            planar = planar.normalized * maxSpeed;
-            rb.linearVelocity = new Vector3(planar.x, rb.linearVelocity.y, planar.z);
-        }
+        // Con ForceMode.VelocityChange - inmediato, ignora masa  
+        //rb.AddForce(movement, ForceMode.VelocityChange);
+        // Si movement = (5,0,0), cambia velocidad directamente a 5 m/s
+        // Respuesta instantánea sin importar la masa
     }
 }

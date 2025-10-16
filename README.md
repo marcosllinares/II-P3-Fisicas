@@ -105,3 +105,194 @@ El plano es un objeto físico. El cubo es un objeto físico y la esfera es físi
 - La esfera que al ser un trigger es ignorada por el motor de físicas y por lo tanto no colisionará con los demás objetos de manera que si colisianse con ellos los atravesaría, al ser trigger podría activar eventos como detección de entrada/salida de un área si otros objetos entran en su volumen.
 
 ## Ejercicio Físicas 3D - Scripts
+### Ejercicio 1
+Crea un personaje,controla su desplazamiento con las teclas WASD o las flechas, el movimiento debe estar influenciado por usando un Rigidbody, pero manteniendo el control total.
+
+![a](https://imgur.com/ofLJB5l.gif)
+
+```csharp
+    public float moveSpeed = 10f;      // velocidad de movimiento
+
+    Rigidbody rb;
+
+    void Awake(){ rb = GetComponent<Rigidbody>(); }
+
+    void FixedUpdate()
+    {
+        float h = Input.GetAxis("Horizontal"); // A/D o flechas
+        float v = Input.GetAxis("Vertical");   // W/S o flechas
+        Vector3 input = new Vector3(h, 0, v);
+
+        // Movimiento básico WASD - usando VelocityChange para respuesta inmediata
+        Vector3 movement = input * moveSpeed;
+        // rb.AddForce(movement, ForceMode.VelocityChange);
+        rb.AddForce(movement, ForceMode.Force);
+    }
+```
+
+### Ejercicio 2
+Crea varios cubos o esferas con Rigidbody dinámico. Muestra por consola el nombre del objeto con el que colisiona, y cámbiale su color al colisionar.
+
+![a](https://imgur.com/gEG0HwG.gif)
+
+![|250](https://i.imgur.com/RxXr5Q0.png)
+
+```csharp
+    Renderer rend;
+
+    void Awake(){
+        rend = GetComponent<Renderer>();
+    }
+
+    void OnCollisionEnter(Collision c)
+    {
+        // Solo cambiar color si colisiona con el player
+        if (c.collider.GetComponent<PlayerControllerRB>() != null)
+        {
+            Debug.Log($"{name} colisionó con: {c.collider.name}");
+            if (rend != null) rend.material.color = RandomColor();
+        }
+    }
+
+    Color RandomColor() => new Color(Random.value, Random.value, Random.value);
+```
+### Ejercicio 3
+Crea una zona (por ejemplo, un cubo grande con `Is Trigger = true`). Al entrar, cambia el color del personaje o activa un efecto que cambie la luz. Al salir, revierte el cambio. Añade otra zona que aumente una variable daño.
+
+![a](https://imgur.com/EyYbIhn.gif)
+
+![](https://i.imgur.com/EPpVA9z.png)
+
+**ColorChangeZone**
+```csharp
+    void OnTriggerEnter(Collider other)
+    {
+        // Verificar si es el player
+        PlayerControllerRB player = other.GetComponent<PlayerControllerRB>();
+        if (player != null)
+        {
+            // Cambiar color del player
+            Renderer playerRenderer = other.GetComponent<Renderer>();
+            if (playerRenderer != null)
+            {
+                // Guardar color original si no existe
+                PlayerColorManager colorManager = other.GetComponent<PlayerColorManager>();
+                if (colorManager == null)
+                {
+                    colorManager = other.gameObject.AddComponent<PlayerColorManager>();
+                    colorManager.originalColor = playerRenderer.material.color;
+                }
+                
+                playerRenderer.material.color = zoneColor;
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        // Verificar si es el player
+        PlayerControllerRB player = other.GetComponent<PlayerControllerRB>();
+        if (player != null)
+        {
+            // Restaurar color original del player
+            Renderer playerRenderer = other.GetComponent<Renderer>();
+            PlayerColorManager colorManager = other.GetComponent<PlayerColorManager>();
+            
+            if (playerRenderer != null && colorManager != null)
+            {
+                playerRenderer.material.color = colorManager.originalColor;
+            }
+        }
+    }
+```
+
+**DamageZone**
+```csharp
+public class DamageZone : MonoBehaviour
+{
+    [Header("Configuración de Daño")]
+    public float damageAmount = 10f;     // Cantidad de daño por entrada
+
+    void OnTriggerEnter(Collider other)
+    {
+        // Verificar si es el player
+        PlayerControllerRB player = other.GetComponent<PlayerControllerRB>();
+        if (player != null)
+        {
+            // Buscar componente de salud del player
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(damageAmount);
+                Debug.Log($"Player entró en zona de daño - Daño aplicado: {damageAmount}");
+            }
+        }
+    }
+}
+```
+
+**PlayerHealth**
+```csharp
+public class PlayerHealth : MonoBehaviour
+{
+    public float damage = 0f;  // Variable de daño acumulado
+    
+    public void TakeDamage(float damageAmount)
+    {
+        damage += damageAmount;
+        Debug.Log($"Player recibió {damageAmount} de daño. Daño total: {damage}");
+    }
+}
+```
+### Ejercicio 4
+Crea tres tipos de objetos en capas distintas: jugador, enemigos, recolectables. Configura la Layer Collision Matrix (Project Settings > Physics). Haz que los enemigos solo colisionen con el jugador, y que los recolectables solo sean detectados por triggers.
+
+![a](https://imgur.com/IbZMCp5.gif)
+
+![|300](https://i.imgur.com/KG5JrnI.png)
+
+![|300](https://i.imgur.com/jJeHJky.png)
+
+- Cada tipo de objeto tiene su layer correctamente asignado y Collectible (Coins) tienen Is Trigger activado
+
+```csharp
+public class Collectible : MonoBehaviour
+{
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            Debug.Log($"Recolectado por: {other.name}");
+            Destroy(gameObject);
+        }
+    }
+}
+```
+### Ejercicio 5
+Crea una escena con distintos materiales físicos (resbaladizo, rugoso, rebote alto). Aplica distintos Physic Materials a objetos. Lanza los objetos con AddForce() al pulsar la tecla X y observa cómo cambian las reacciones.
+
+![a](https://imgur.com/JZ49iBg.gif)
+
+- Slippery -> azul
+- Rough -> rojo
+- Bounce -> verde
+
+![](https://i.imgur.com/0q33L4i.png)
+
+
+```csharp
+    public float force = 500f;
+    public Vector3 direction = Vector3.up;
+
+    Rigidbody rb;
+
+    void Awake(){ rb = GetComponent<Rigidbody>(); }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            rb.AddForce(direction.normalized * force);
+        }
+    }
+```

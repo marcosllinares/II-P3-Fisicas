@@ -2,6 +2,26 @@
 
 **Autor:** Marcos Llinares Montes (alu0100972443)
 
+## Índice
+- [Interfaces Inteligentes - Práctica 3 - Físicas](#interfaces-inteligentes---práctica-3---físicas)
+  - [Índice](#índice)
+  - [Ejercicio Físicas 3D](#ejercicio-físicas-3d)
+    - [Situación 1](#situación-1)
+    - [Situación 2](#situación-2)
+    - [Situación 3](#situación-3)
+    - [Situación 4](#situación-4)
+    - [Situación 5](#situación-5)
+    - [Situación 6](#situación-6)
+    - [Situación 7](#situación-7)
+    - [Situación 8](#situación-8)
+    - [Situación 9](#situación-9)
+  - [Ejercicio Físicas 3D - Scripts](#ejercicio-físicas-3d---scripts)
+    - [Ejercicio 1](#ejercicio-1)
+    - [Ejercicio 2](#ejercicio-2)
+    - [Ejercicio 3](#ejercicio-3)
+    - [Ejercicio 4](#ejercicio-4)
+    - [Ejercicio 5](#ejercicio-5)
+
 ## Ejercicio Físicas 3D
 ### Situación 1
 El plano no es un objeto físico. El cubo es un objeto físico y la esfera no. En este caso, el plano y la esfera sólo tendrán collider, mientras que el cubo debe tener Rigidbody. 
